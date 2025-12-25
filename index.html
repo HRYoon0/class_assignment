@@ -1,0 +1,1096 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>초등학교 반편성 프로그램</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Jua&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Jua', sans-serif;
+        }
+
+        body {
+            font-family: 'Jua', sans-serif;
+            background: linear-gradient(135deg, #E3F2FD 0%, #F3E5F5 50%, #FCE4EC 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 30px;
+            box-shadow: 0 20px 60px rgba(156, 136, 255, 0.15);
+            padding: 40px;
+            backdrop-filter: blur(10px);
+        }
+
+        h1 {
+            background: linear-gradient(135deg, #B39DDB 0%, #CE93D8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            text-align: center;
+            margin-bottom: 10px;
+            font-size: 2.5em;
+            font-weight: 800;
+        }
+
+        .subtitle {
+            text-align: center;
+            color: #9C88AA;
+            margin-bottom: 30px;
+            font-size: 1.1em;
+        }
+
+        .control-panel {
+            background: linear-gradient(135deg, #F8F4FF 0%, #FFF8F8 100%);
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 30px;
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+            border: 2px solid rgba(206, 147, 216, 0.2);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        label {
+            font-weight: bold;
+            color: #8E7A99;
+            font-size: 0.95em;
+        }
+
+        input[type="file"],
+        input[type="number"],
+        input[type="text"] {
+            padding: 10px 15px;
+            border: 2px solid #E8D5F0;
+            border-radius: 12px;
+            font-size: 1em;
+            transition: all 0.3s;
+            background: white;
+        }
+
+        input[type="file"]:hover,
+        input[type="number"]:hover,
+        input[type="text"]:hover {
+            border-color: #CE93D8;
+            box-shadow: 0 2px 10px rgba(206, 147, 216, 0.15);
+        }
+
+        input[type="file"]:focus,
+        input[type="number"]:focus,
+        input[type="text"]:focus {
+            outline: none;
+            border-color: #B39DDB;
+            box-shadow: 0 2px 15px rgba(179, 157, 219, 0.25);
+        }
+
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 12px;
+            font-size: 1em;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s;
+            color: white;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #B39DDB 0%, #CE93D8 100%);
+            box-shadow: 0 4px 15px rgba(179, 157, 219, 0.3);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(179, 157, 219, 0.4);
+            background: linear-gradient(135deg, #9C88C4 0%, #BA81C5 100%);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #A5D6A7 0%, #81C784 100%);
+            box-shadow: 0 4px 15px rgba(129, 199, 132, 0.3);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(129, 199, 132, 0.4);
+            background: linear-gradient(135deg, #90C695 0%, #66BB6A 100%);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #F8BBD0 0%, #F48FB1 100%);
+            padding: 8px 16px;
+            font-size: 0.9em;
+            box-shadow: 0 4px 15px rgba(244, 143, 177, 0.3);
+        }
+
+        .btn-danger:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(244, 143, 177, 0.4);
+            background: linear-gradient(135deg, #F5A9C3 0%, #EC407A 100%);
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #E1BEE7 0%, #CE93D8 100%);
+            padding: 8px 16px;
+            font-size: 0.9em;
+            box-shadow: 0 4px 15px rgba(206, 147, 216, 0.3);
+        }
+
+        .btn-secondary:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(206, 147, 216, 0.4);
+        }
+
+        .stats-panel {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #B39DDB 0%, #CE93D8 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 20px;
+            text-align: center;
+            box-shadow: 0 8px 25px rgba(179, 157, 219, 0.25);
+            transition: transform 0.3s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 35px rgba(179, 157, 219, 0.35);
+        }
+
+        .stat-card:nth-child(1) {
+            background: linear-gradient(135deg, #B39DDB 0%, #9575CD 100%);
+        }
+
+        .stat-card:nth-child(2) {
+            background: linear-gradient(135deg, #90CAF9 0%, #64B5F6 100%);
+        }
+
+        .stat-card:nth-child(3) {
+            background: linear-gradient(135deg, #A5D6A7 0%, #81C784 100%);
+        }
+
+        .stat-card h3 {
+            font-size: 0.9em;
+            opacity: 0.95;
+            margin-bottom: 10px;
+            font-weight: 600;
+        }
+
+        .stat-card .number {
+            font-size: 2.2em;
+            font-weight: bold;
+        }
+
+        .table-container {
+            overflow-x: auto;
+            margin-bottom: 25px;
+            border-radius: 20px;
+            border: 2px solid #E8D5F0;
+            box-shadow: 0 4px 15px rgba(206, 147, 216, 0.1);
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            background: white;
+        }
+
+        th {
+            background: linear-gradient(135deg, #E1BEE7 0%, #CE93D8 100%);
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: bold;
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        td {
+            padding: 12px;
+            text-align: center;
+            border-bottom: 1px solid #F3E5F5;
+        }
+
+        tbody tr:hover {
+            background: linear-gradient(135deg, #F8F4FF 0%, #FFF8F8 100%);
+        }
+
+        td input {
+            width: 100%;
+            padding: 6px 10px;
+            border: 1px solid #E8D5F0;
+            border-radius: 8px;
+            text-align: center;
+            transition: border-color 0.3s;
+        }
+
+        td input:focus {
+            outline: none;
+            border-color: #CE93D8;
+        }
+
+        .action-buttons {
+            display: flex;
+            gap: 5px;
+            justify-content: center;
+        }
+
+        .add-row-section {
+            background: linear-gradient(135deg, #FFF8F8 0%, #F8F4FF 100%);
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            border: 2px solid rgba(206, 147, 216, 0.2);
+        }
+
+        .add-row-section h3 {
+            color: #B39DDB;
+        }
+
+        .add-row-form {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+            align-items: end;
+        }
+
+        .result-section {
+            margin-top: 30px;
+            padding: 30px;
+            background: linear-gradient(135deg, #F3E5F5 0%, #FCE4EC 100%);
+            border-radius: 25px;
+            display: none;
+            border: 2px solid rgba(206, 147, 216, 0.2);
+        }
+
+        .result-section.show {
+            display: block;
+        }
+
+        .result-section h2 {
+            color: #B39DDB;
+        }
+
+        .class-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        .class-card {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 6px 20px rgba(179, 157, 219, 0.15);
+            border: 2px solid rgba(206, 147, 216, 0.1);
+            transition: transform 0.3s;
+        }
+
+        .class-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px rgba(179, 157, 219, 0.25);
+        }
+
+        .class-card h3 {
+            color: #B39DDB;
+            margin-bottom: 15px;
+            padding-bottom: 10px;
+            border-bottom: 3px solid #E1BEE7;
+        }
+
+        .class-stats {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            margin-bottom: 15px;
+            padding: 15px;
+            background: linear-gradient(135deg, #F8F4FF 0%, #FFF8F8 100%);
+            border-radius: 12px;
+        }
+
+        .class-stats div {
+            font-size: 0.9em;
+            color: #6D5D7A;
+        }
+
+        .class-stats strong {
+            color: #B39DDB;
+        }
+
+        .student-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .student-list::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .student-list::-webkit-scrollbar-track {
+            background: #F3E5F5;
+            border-radius: 10px;
+        }
+
+        .student-list::-webkit-scrollbar-thumb {
+            background: #CE93D8;
+            border-radius: 10px;
+        }
+
+        .student-item {
+            padding: 10px;
+            border-bottom: 1px solid #F3E5F5;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: background 0.3s;
+        }
+
+        .student-item:hover {
+            background: #F8F4FF;
+        }
+
+        .student-item:last-child {
+            border-bottom: none;
+        }
+
+        .student-name {
+            font-weight: bold;
+            color: #6D5D7A;
+        }
+
+        .student-score {
+            color: #9C88AA;
+            font-size: 0.9em;
+        }
+
+        .student-note {
+            color: #F48FB1;
+            font-size: 0.85em;
+            margin-left: 10px;
+        }
+
+        .alert {
+            padding: 15px;
+            border-radius: 12px;
+            margin-bottom: 20px;
+            font-weight: bold;
+        }
+
+        .alert-success {
+            background: #C8E6C9;
+            color: #2E7D32;
+            border: 2px solid #A5D6A7;
+        }
+
+        .alert-warning {
+            background: #FFF9C4;
+            color: #F57F17;
+            border: 2px solid #FFF59D;
+        }
+
+        .template-section {
+            background: linear-gradient(135deg, #E3F2FD 0%, #F3E5F5 100%);
+            padding: 25px;
+            border-radius: 20px;
+            margin-bottom: 25px;
+            border-left: 5px solid #B39DDB;
+            box-shadow: 0 4px 15px rgba(179, 157, 219, 0.1);
+        }
+
+        .template-section h3 {
+            color: #B39DDB;
+            margin-bottom: 12px;
+            font-weight: 700;
+        }
+
+        .template-section p {
+            color: #6D5D7A;
+            margin-bottom: 15px;
+            line-height: 1.8;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                border-radius: 20px;
+            }
+
+            h1 {
+                font-size: 1.8em;
+            }
+
+            .control-panel {
+                grid-template-columns: 1fr;
+            }
+
+            .class-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🎓 초등학교 반편성 프로그램</h1>
+        <p class="subtitle">학생 명단을 입력하고 공정한 반편성을 진행하세요</p>
+
+        <!-- 템플릿 안내 -->
+        <div class="template-section">
+            <h3>📋 사용 방법</h3>
+            <p>
+                <strong>1단계:</strong> 엑셀 파일을 준비하세요. (열 순서: 이름, 성별, 현재반, 성적, 비고)<br>
+                <strong>2단계:</strong> 현재 학년과 다음 학년을 설정하세요.<br>
+                <strong>3단계:</strong> 파일을 업로드하거나 직접 입력하세요.<br>
+                <strong>4단계:</strong> 반 개수를 설정하고 '반편성 시작' 버튼을 클릭하세요.<br>
+                <strong>5단계:</strong> 결과를 확인하고 엑셀로 다운로드하세요.
+            </p>
+            <button class="btn-secondary" onclick="downloadTemplate()">📥 엑셀 템플릿 다운로드</button>
+        </div>
+
+        <!-- 컨트롤 패널 -->
+        <div class="control-panel">
+            <div class="control-group">
+                <label for="currentGrade">현재 학년</label>
+                <input type="number" id="currentGrade" min="1" max="6" value="3" placeholder="예: 3">
+            </div>
+            <div class="control-group">
+                <label for="nextGrade">다음 학년</label>
+                <input type="number" id="nextGrade" min="1" max="6" value="4" placeholder="예: 4">
+            </div>
+            <div class="control-group">
+                <label for="classCount">반 개수</label>
+                <input type="number" id="classCount" min="1" max="20" value="6" placeholder="예: 6">
+            </div>
+            <div class="control-group">
+                <label for="fileInput">📂 엑셀/CSV 파일 업로드</label>
+                <input type="file" id="fileInput" accept=".xlsx,.xls,.csv" onchange="handleFileUpload(event)">
+            </div>
+            <div class="control-group">
+                <label>&nbsp;</label>
+                <button class="btn-primary" onclick="assignClasses()">🎯 반편성 시작</button>
+            </div>
+            <div class="control-group">
+                <label>&nbsp;</label>
+                <button class="btn-success" onclick="downloadResult()">📥 결과 다운로드 (엑셀)</button>
+            </div>
+        </div>
+
+        <!-- 통계 패널 -->
+        <div class="stats-panel">
+            <div class="stat-card">
+                <h3>총 학생 수</h3>
+                <div class="number" id="totalStudents">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>평균 성적</h3>
+                <div class="number" id="avgScore">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>특징 학생 수</h3>
+                <div class="number" id="specialStudents">0</div>
+            </div>
+        </div>
+
+        <!-- 학생 추가 섹션 -->
+        <div class="add-row-section">
+            <h3 style="margin-bottom: 15px; color: #667eea;">➕ 학생 추가</h3>
+            <div class="add-row-form">
+                <div class="control-group">
+                    <label>이름</label>
+                    <input type="text" id="newName" placeholder="홍길동">
+                </div>
+                <div class="control-group">
+                    <label>성별</label>
+                    <input type="text" id="newGender" placeholder="남/여">
+                </div>
+                <div class="control-group">
+                    <label>현재 반</label>
+                    <input type="text" id="newCurrentClass" placeholder="1반">
+                </div>
+                <div class="control-group">
+                    <label>성적 (0-100)</label>
+                    <input type="number" id="newScore" min="0" max="100" placeholder="85">
+                </div>
+                <div class="control-group">
+                    <label>비고 (선택)</label>
+                    <input type="text" id="newNote" placeholder="특징 입력">
+                </div>
+                <div class="control-group">
+                    <label>&nbsp;</label>
+                    <button class="btn-primary" onclick="addStudent()">추가</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 학생 명단 테이블 -->
+        <div class="table-container">
+            <table id="studentTable">
+                <thead>
+                    <tr>
+                        <th style="width: 60px;">번호</th>
+                        <th style="width: 120px;">이름</th>
+                        <th style="width: 80px;">성별</th>
+                        <th style="width: 100px;">현재 반</th>
+                        <th style="width: 100px;">성적</th>
+                        <th style="width: 180px;">비고</th>
+                        <th style="width: 150px;">작업</th>
+                    </tr>
+                </thead>
+                <tbody id="studentTableBody">
+                    <tr>
+                        <td colspan="7" style="padding: 40px; color: #999;">
+                            학생 명단이 비어있습니다. 엑셀 파일을 업로드하거나 직접 추가해주세요.
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- 반편성 결과 -->
+        <div class="result-section" id="resultSection">
+            <h2 style="color: #667eea; margin-bottom: 20px;">📊 반편성 결과</h2>
+            <div id="classGrid" class="class-grid"></div>
+        </div>
+    </div>
+
+    <script>
+        // 전역 변수
+        let students = [];
+        let assignmentResult = null;
+
+        // 엑셀 템플릿 다운로드
+        function downloadTemplate() {
+            const template = [
+                ['이름', '성별', '현재반', '성적', '비고'],
+                ['홍길동', '남', '1반', '85', ''],
+                ['김영희', '여', '1반', '90', ''],
+                ['이철수', '남', '2반', '78', '리더십 강함'],
+                ['박민수', '남', '2반', '82', ''],
+                ['최지우', '여', '3반', '88', '']
+            ];
+
+            const ws = XLSX.utils.aoa_to_sheet(template);
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, '학생명단');
+            XLSX.writeFile(wb, '반편성_템플릿.xlsx');
+        }
+
+        // 파일 업로드 처리
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const data = new Uint8Array(e.target.result);
+                    const workbook = XLSX.read(data, { type: 'array' });
+                    const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                    const jsonData = XLSX.utils.sheet_to_json(firstSheet, { header: 1 });
+
+                    // 헤더 제거
+                    const rows = jsonData.slice(1);
+
+                    students = rows
+                        .filter(row => row[0]) // 이름이 있는 행만
+                        .map((row, index) => ({
+                            id: Date.now() + index,
+                            name: row[0] || '',
+                            gender: row[1] || '',
+                            currentClass: row[2] || '',
+                            score: parseFloat(row[3]) || 0,
+                            note: row[4] || ''
+                        }));
+
+                    renderTable();
+                    updateStats();
+                    alert(`${students.length}명의 학생 정보를 불러왔습니다.`);
+                } catch (error) {
+                    alert('파일을 읽는 중 오류가 발생했습니다: ' + error.message);
+                }
+            };
+            reader.readAsArrayBuffer(file);
+        }
+
+        // 학생 추가
+        function addStudent() {
+            const name = document.getElementById('newName').value.trim();
+            const gender = document.getElementById('newGender').value.trim();
+            const currentClass = document.getElementById('newCurrentClass').value.trim();
+            const score = parseFloat(document.getElementById('newScore').value) || 0;
+            const note = document.getElementById('newNote').value.trim();
+
+            if (!name) {
+                alert('이름을 입력해주세요.');
+                return;
+            }
+
+            students.push({
+                id: Date.now(),
+                name,
+                gender,
+                currentClass,
+                score,
+                note
+            });
+
+            // 입력 필드 초기화
+            document.getElementById('newName').value = '';
+            document.getElementById('newGender').value = '';
+            document.getElementById('newCurrentClass').value = '';
+            document.getElementById('newScore').value = '';
+            document.getElementById('newNote').value = '';
+
+            renderTable();
+            updateStats();
+        }
+
+        // 학생 삭제
+        function deleteStudent(id) {
+            if (confirm('정말 이 학생을 삭제하시겠습니까?')) {
+                students = students.filter(s => s.id !== id);
+                renderTable();
+                updateStats();
+            }
+        }
+
+        // 학생 정보 수정
+        function updateStudent(id, field, value) {
+            const student = students.find(s => s.id === id);
+            if (student) {
+                if (field === 'score') {
+                    student[field] = parseFloat(value) || 0;
+                } else {
+                    student[field] = value;
+                }
+                updateStats();
+            }
+        }
+
+        // 테이블 렌더링
+        function renderTable() {
+            const tbody = document.getElementById('studentTableBody');
+
+            if (students.length === 0) {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="7" style="padding: 40px; color: #999;">
+                            학생 명단이 비어있습니다. 엑셀 파일을 업로드하거나 직접 추가해주세요.
+                        </td>
+                    </tr>
+                `;
+                return;
+            }
+
+            tbody.innerHTML = students.map((student, index) => `
+                <tr>
+                    <td>${index + 1}</td>
+                    <td>
+                        <input type="text" value="${student.name}"
+                               onchange="updateStudent(${student.id}, 'name', this.value)">
+                    </td>
+                    <td>
+                        <input type="text" value="${student.gender}"
+                               onchange="updateStudent(${student.id}, 'gender', this.value)">
+                    </td>
+                    <td>
+                        <input type="text" value="${student.currentClass || ''}"
+                               onchange="updateStudent(${student.id}, 'currentClass', this.value)">
+                    </td>
+                    <td>
+                        <input type="number" value="${student.score}" min="0" max="100"
+                               onchange="updateStudent(${student.id}, 'score', this.value)">
+                    </td>
+                    <td>
+                        <input type="text" value="${student.note}"
+                               onchange="updateStudent(${student.id}, 'note', this.value)">
+                    </td>
+                    <td>
+                        <div class="action-buttons">
+                            <button class="btn-danger" onclick="deleteStudent(${student.id})">삭제</button>
+                        </div>
+                    </td>
+                </tr>
+            `).join('');
+        }
+
+        // 통계 업데이트
+        function updateStats() {
+            document.getElementById('totalStudents').textContent = students.length;
+
+            const avgScore = students.length > 0
+                ? (students.reduce((sum, s) => sum + s.score, 0) / students.length).toFixed(1)
+                : 0;
+            document.getElementById('avgScore').textContent = avgScore;
+
+            const specialCount = students.filter(s => s.note && s.note.trim()).length;
+            document.getElementById('specialStudents').textContent = specialCount;
+        }
+
+        // 반편성 알고리즘
+        function assignClasses() {
+            if (students.length === 0) {
+                alert('학생 명단을 먼저 입력해주세요.');
+                return;
+            }
+
+            const classCount = parseInt(document.getElementById('classCount').value);
+            if (!classCount || classCount < 1) {
+                alert('올바른 반 개수를 입력해주세요.');
+                return;
+            }
+
+            if (students.length < classCount) {
+                alert('학생 수가 반 개수보다 적습니다.');
+                return;
+            }
+
+            // 반편성 로직
+            const classes = Array.from({ length: classCount }, (_, i) => ({
+                name: `${i + 1}반`,
+                students: [],
+                totalScore: 0,
+                specialCount: 0,
+                genderCount: { '남': 0, '여': 0 }
+            }));
+
+            // 배치 헬퍼 함수
+            function addStudentToClass(student, targetClass) {
+                targetClass.students.push(student);
+                targetClass.totalScore += student.score;
+                if (student.note && student.note.trim()) {
+                    targetClass.specialCount++;
+                }
+                if (student.gender === '남' || student.gender === '여') {
+                    targetClass.genderCount[student.gender]++;
+                }
+            }
+
+            // Fisher-Yates Shuffle 알고리즘 (완전 무작위 섞기)
+            function shuffleArray(array) {
+                const result = [...array];
+                for (let i = result.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [result[i], result[j]] = [result[j], result[i]];
+                }
+                return result;
+            }
+
+            // 이전 반 출신을 균등 분산시키는 함수
+            function distributeByPreviousClass(studentList) {
+                // 1. 이전 반별로 그룹화
+                const grouped = {};
+                studentList.forEach(student => {
+                    const key = student.currentClass || 'none';
+                    if (!grouped[key]) grouped[key] = [];
+                    grouped[key].push(student);
+                });
+
+                // 2. 각 이전 반 출신을 classCount개 그룹으로 균등 분배
+                const distributedGroups = Array.from({ length: classCount }, () => []);
+
+                Object.values(grouped).forEach(group => {
+                    // 먼저 이 그룹 내에서 섞기
+                    for (let i = group.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [group[i], group[j]] = [group[j], group[i]];
+                    }
+
+                    // 균등 분배: 기본 인원 + 나머지 랜덤 배치
+                    const perGroup = Math.floor(group.length / classCount);
+                    const remainder = group.length % classCount;
+
+                    let studentIdx = 0;
+
+                    // 각 그룹에 기본 인원 먼저 배치
+                    for (let i = 0; i < classCount; i++) {
+                        for (let j = 0; j < perGroup; j++) {
+                            if (studentIdx < group.length) {
+                                distributedGroups[i].push(group[studentIdx++]);
+                            }
+                        }
+                    }
+
+                    // 나머지를 랜덤 순서로 배치
+                    const remainderIndices = [];
+                    for (let i = 0; i < classCount; i++) {
+                        remainderIndices.push(i);
+                    }
+                    // Fisher-Yates shuffle로 순서 섞기
+                    for (let i = remainderIndices.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [remainderIndices[i], remainderIndices[j]] = [remainderIndices[j], remainderIndices[i]];
+                    }
+
+                    // 나머지를 랜덤 그룹에 하나씩 배치
+                    for (let i = 0; i < remainder; i++) {
+                        if (studentIdx < group.length) {
+                            distributedGroups[remainderIndices[i]].push(group[studentIdx++]);
+                        }
+                    }
+                });
+
+                // 3. 각 그룹 내에서 다시 한 번 섞기 (다른 이전 반끼리 섞이도록)
+                distributedGroups.forEach(group => {
+                    for (let i = group.length - 1; i > 0; i--) {
+                        const j = Math.floor(Math.random() * (i + 1));
+                        [group[i], group[j]] = [group[j], group[i]];
+                    }
+                });
+
+                // 4. 모든 그룹을 interleave 방식으로 합치기 (Round-Robin과 완벽 매칭)
+                const result = [];
+                const maxGroupSize = Math.max(...distributedGroups.map(g => g.length));
+
+                for (let i = 0; i < maxGroupSize; i++) {
+                    for (let groupIdx = 0; groupIdx < classCount; groupIdx++) {
+                        if (i < distributedGroups[groupIdx].length) {
+                            result.push(distributedGroups[groupIdx][i]);
+                        }
+                    }
+                }
+
+                return result;
+            }
+
+            // 학생을 4개 그룹으로 분류
+            let specialMale = students.filter(s => (s.note && s.note.trim()) && s.gender === '남');
+            let specialFemale = students.filter(s => (s.note && s.note.trim()) && s.gender === '여');
+            let regularMale = students.filter(s => (!s.note || !s.note.trim()) && s.gender === '남');
+            let regularFemale = students.filter(s => (!s.note || !s.note.trim()) && s.gender === '여');
+            let otherStudents = students.filter(s => s.gender !== '남' && s.gender !== '여');
+
+            // 각 그룹을 성적순으로 정렬
+            specialMale.sort((a, b) => b.score - a.score);
+            specialFemale.sort((a, b) => b.score - a.score);
+            regularMale.sort((a, b) => b.score - a.score);
+            regularFemale.sort((a, b) => b.score - a.score);
+            otherStudents.sort((a, b) => b.score - a.score);
+
+            // 각 그룹 내에서 이전 반 출신을 균등 분산
+            specialMale = distributeByPreviousClass(specialMale);
+            specialFemale = distributeByPreviousClass(specialFemale);
+            regularMale = distributeByPreviousClass(regularMale);
+            regularFemale = distributeByPreviousClass(regularFemale);
+            otherStudents = distributeByPreviousClass(otherStudents);
+
+            // 각 반의 목표 남/여 학생 수 계산
+            const totalMale = specialMale.length + regularMale.length;
+            const totalFemale = specialFemale.length + regularFemale.length;
+            const totalSpecial = specialMale.length + specialFemale.length;
+
+            const malePerClass = Math.floor(totalMale / classCount);
+            const femalePerClass = Math.floor(totalFemale / classCount);
+            const specialPerClass = Math.floor(totalSpecial / classCount);
+
+            const maleRemainder = totalMale % classCount;
+            const femaleRemainder = totalFemale % classCount;
+            const specialRemainder = totalSpecial % classCount;
+
+            // 각 반에 목표 설정
+            classes.forEach((cls, i) => {
+                cls.targetMale = malePerClass + (i < maleRemainder ? 1 : 0);
+                cls.targetFemale = femalePerClass + (i < femaleRemainder ? 1 : 0);
+                cls.targetSpecial = specialPerClass + (i < specialRemainder ? 1 : 0);
+            });
+
+            // 목표를 충족하면서 Round-Robin 배치하는 함수
+            function distributeWithTarget(studentList, checkFunc) {
+                let classIdx = 0;
+                for (const student of studentList) {
+                    let attempts = 0;
+                    while (attempts < classCount && !checkFunc(student, classes[classIdx])) {
+                        classIdx = (classIdx + 1) % classCount;
+                        attempts++;
+                    }
+                    addStudentToClass(student, classes[classIdx]);
+                    classIdx = (classIdx + 1) % classCount;
+                }
+            }
+
+            // 1. 특징 남학생 배치 (각 반의 남학생/특징 학생 목표 고려)
+            distributeWithTarget(specialMale, (student, cls) => {
+                return cls.genderCount['남'] < cls.targetMale && cls.specialCount < cls.targetSpecial;
+            });
+
+            // 2. 특징 여학생 배치 (각 반의 여학생/특징 학생 목표 고려)
+            distributeWithTarget(specialFemale, (student, cls) => {
+                return cls.genderCount['여'] < cls.targetFemale && cls.specialCount < cls.targetSpecial;
+            });
+
+            // 3. 일반 남학생 배치 (각 반의 남학생 목표 고려)
+            distributeWithTarget(regularMale, (student, cls) => {
+                return cls.genderCount['남'] < cls.targetMale;
+            });
+
+            // 4. 일반 여학생 배치 (각 반의 여학생 목표 고려)
+            distributeWithTarget(regularFemale, (student, cls) => {
+                return cls.genderCount['여'] < cls.targetFemale;
+            });
+
+            // 5. 기타 학생 배치
+            for (let i = 0; i < otherStudents.length; i++) {
+                addStudentToClass(otherStudents[i], classes[i % classCount]);
+            }
+
+            // 결과 저장 및 표시
+            assignmentResult = classes;
+            displayResult(classes);
+        }
+
+        // 결과 표시
+        function displayResult(classes) {
+            const resultSection = document.getElementById('resultSection');
+            const classGrid = document.getElementById('classGrid');
+            const currentGrade = document.getElementById('currentGrade').value;
+            const nextGrade = document.getElementById('nextGrade').value;
+
+            classGrid.innerHTML = classes.map(classInfo => {
+                const avgScore = classInfo.students.length > 0
+                    ? (classInfo.totalScore / classInfo.students.length).toFixed(1)
+                    : 0;
+
+                return `
+                    <div class="class-card">
+                        <h3>${nextGrade}학년 ${classInfo.name} (${classInfo.students.length}명)</h3>
+                        <div class="class-stats">
+                            <div><strong>평균 성적:</strong> ${avgScore}점</div>
+                            <div><strong>특징 학생:</strong> ${classInfo.specialCount}명</div>
+                            <div><strong>남학생:</strong> ${classInfo.genderCount['남'] || 0}명</div>
+                            <div><strong>여학생:</strong> ${classInfo.genderCount['여'] || 0}명</div>
+                        </div>
+                        <div class="student-list">
+                            ${classInfo.students.map((student, idx) => `
+                                <div class="student-item">
+                                    <div>
+                                        <span class="student-name">${idx + 1}. ${student.name}</span>
+                                        ${student.currentClass ? `<span style="color: #999; font-size: 0.85em; margin-left: 5px;">(${currentGrade}학년 ${student.currentClass})</span>` : ''}
+                                        <span class="student-score"> - ${student.score}점</span>
+                                        ${student.note ? `<span class="student-note">📌 ${student.note}</span>` : ''}
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+
+            resultSection.classList.add('show');
+            resultSection.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // 결과 다운로드
+        function downloadResult() {
+            if (!assignmentResult || assignmentResult.length === 0) {
+                alert('먼저 반편성을 진행해주세요.');
+                return;
+            }
+
+            const currentGrade = document.getElementById('currentGrade').value;
+            const nextGrade = document.getElementById('nextGrade').value;
+            const wb = XLSX.utils.book_new();
+
+            // 전체 결과 시트
+            const allData = [[`${currentGrade}학년 반`, `${nextGrade}학년 반`, '번호', '이름', '성별', '성적', '비고']];
+            assignmentResult.forEach(classInfo => {
+                classInfo.students.forEach((student, idx) => {
+                    allData.push([
+                        student.currentClass || '',
+                        classInfo.name,
+                        idx + 1,
+                        student.name,
+                        student.gender,
+                        student.score,
+                        student.note
+                    ]);
+                });
+            });
+            const wsAll = XLSX.utils.aoa_to_sheet(allData);
+            XLSX.utils.book_append_sheet(wb, wsAll, '전체명단');
+
+            // 각 반별 시트
+            assignmentResult.forEach(classInfo => {
+                const classData = [[`${nextGrade}학년 ${classInfo.name}`, '', '', '', '']];
+                classData.push([`${currentGrade}학년 반`, '번호', '이름', '성별', '성적', '비고']);
+                classInfo.students.forEach((student, idx) => {
+                    classData.push([
+                        student.currentClass || '',
+                        idx + 1,
+                        student.name,
+                        student.gender,
+                        student.score,
+                        student.note
+                    ]);
+                });
+
+                // 통계 추가
+                const avgScore = classInfo.students.length > 0
+                    ? (classInfo.totalScore / classInfo.students.length).toFixed(1)
+                    : 0;
+                classData.push([]);
+                classData.push(['통계']);
+                classData.push(['총 인원', classInfo.students.length]);
+                classData.push(['평균 성적', avgScore]);
+                classData.push(['특징 학생', classInfo.specialCount]);
+                classData.push(['남학생', classInfo.genderCount['남'] || 0]);
+                classData.push(['여학생', classInfo.genderCount['여'] || 0]);
+
+                const ws = XLSX.utils.aoa_to_sheet(classData);
+                XLSX.utils.book_append_sheet(wb, ws, `${nextGrade}학년 ${classInfo.name}`);
+            });
+
+            // 통계 요약 시트
+            const statsData = [
+                [`${nextGrade}학년 반`, '인원', '평균 성적', '특징 학생', '남학생', '여학생']
+            ];
+            assignmentResult.forEach(classInfo => {
+                const avgScore = classInfo.students.length > 0
+                    ? (classInfo.totalScore / classInfo.students.length).toFixed(1)
+                    : 0;
+                statsData.push([
+                    classInfo.name,
+                    classInfo.students.length,
+                    avgScore,
+                    classInfo.specialCount,
+                    classInfo.genderCount['남'] || 0,
+                    classInfo.genderCount['여'] || 0
+                ]);
+            });
+            const wsStats = XLSX.utils.aoa_to_sheet(statsData);
+            XLSX.utils.book_append_sheet(wb, wsStats, '통계');
+
+            // 파일 저장
+            const today = new Date().toISOString().split('T')[0];
+            XLSX.writeFile(wb, `${currentGrade}학년to${nextGrade}학년_반편성결과_${today}.xlsx`);
+        }
+
+        // 초기화
+        updateStats();
+    </script>
+</body>
+</html>
